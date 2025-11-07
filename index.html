@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -29,9 +29,9 @@
 
     .calendar {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-gap: 0.7rem;
-      max-width: 100%;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      max-width: 480px;
       margin: 0 auto 2rem auto;
     }
 
@@ -39,10 +39,10 @@ gap: 0.7rem;
       background: rgba(224, 242, 233, 0.15);
       border: 2px solid rgba(224, 242, 233, 0.3);
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 70px;
+      height: 70px;
       font-weight: bold;
-      font-size: 1.2rem;
+      font-size: 1.6rem;
       color: #bada55;
       display: flex;
       align-items: center;
@@ -124,10 +124,27 @@ gap: 0.7rem;
       100% { transform: translateY(100vh); opacity: 0; }
     }
 
+    /* Mobile Anpassungen */
     @media (max-width: 600px) {
-      h1 { font-size: 1.5rem; }
-      h2 { font-size: 1.2rem; }
-      p { font-size: 0.95rem; }
+      .calendar {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 100%;
+        gap: 0.7rem;
+      }
+      .door {
+        width: 55px;
+        height: 55px;
+        font-size: 1.2rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      h2 {
+        font-size: 1.2rem;
+      }
+      p {
+        font-size: 0.95rem;
+      }
     }
   </style>
 </head>
@@ -177,10 +194,9 @@ gap: 0.7rem;
     const desc = document.getElementById('song-desc');
     const link = document.getElementById('spotify-link');
 
-    // Testmodus aktivieren oder deaktivieren
+    // Testmodus aktivieren/deaktivieren
     const testMode = true;
 
-    // Aktueller Tag ermitteln (Dezember = Monat 11 in JS)
     const today = new Date();
     const currentDay = (today.getMonth() === 11) ? today.getDate() : 0;
 
@@ -218,8 +234,7 @@ gap: 0.7rem;
       calendar.appendChild(door);
     }
 
-    // Öffne initial das erste Türchen oder aktuellen Tag im Livebetrieb
-    openDoor(testMode ? 1 : currentDay || 1);
+    openDoor(testMode ? 1 : (currentDay || 1));
 
     // Schneefall erzeugen
     function createSnowflake() {
