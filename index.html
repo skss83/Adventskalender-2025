@@ -89,6 +89,13 @@
       margin: 0.5rem 0;
     }
 
+    .countdown {
+      font-weight: bold;
+      color: #bada55;
+      font-size: 1.2rem;
+      margin-top: 1rem;
+    }
+
     a {
       display: inline-block;
       margin-top: 1rem;
@@ -127,7 +134,6 @@
       100% { transform: translateY(100vh); opacity: 0; }
     }
 
-    /* Mobiles Styling – weiterhin 4 Spalten, Buttons etwas kleiner */
     @media (max-width: 600px) {
       .calendar {
         grid-template-columns: repeat(4, 1fr);
@@ -159,7 +165,8 @@
     <h2 id="day-info"></h2>
     <p id="song-text"></p>
     <p id="song-desc" class="desc"></p>
-    <a id="spotify-link" href="#" target="_blank">🎧 Jetzt anhören</a>
+    <div id="countdown" class="countdown"></div>
+    <a id="spotify-link" href="#" target="_blank" style="display:none;">🎧 Jetzt anhören</a>
   </div>
 
   <script>
@@ -195,14 +202,33 @@
     const text = document.getElementById('song-text');
     const desc = document.getElementById('song-desc');
     const link = document.getElementById('spotify-link');
+    const countdownDiv = document.getElementById('countdown');
 
     // Testmodus aktivieren/deaktivieren
-    const testMode = true;
+    const testMode = false;
 
     const today = new Date();
+    // currentDay == 0 falls nicht Dezember
     const currentDay = (today.getMonth() === 11) ? today.getDate() : 0;
+    const isDecember = today.getMonth() === 11;
+
+    function showPreAdventCountdown() {
+      // Heute bis 1. Dez.
+      let firstDecember = new Date(today.getFullYear(), 11, 1);
+      let remain = Math.ceil((firstDecember - today) / (1000 * 60 * 60 * 24));
+      if (remain < 0) remain = 0;
+
+      info.textContent = "Der Adventskalender ist noch nicht gestartet!";
+      text.textContent = "";
+      desc.textContent = "";
+      link.style.display = "none";
+      countdownDiv.textContent = remain === 1
+          ? "Nur noch 1 Tag bis zum Start am 1. Dezember!"
+          : `Nur noch ${remain} Tage bis zum Start am 1. Dezember!`;
+    }
 
     function openDoor(day) {
+      countdownDiv.textContent = "";
       if (!songs[day]) {
         info.textContent = `Kein Song für den ${day}. Dezember hinterlegt.`;
         text.textContent = '';
@@ -221,22 +247,31 @@
       if (door) door.classList.add('opened');
     }
 
-    for (let day = 1; day <= 24; day++) {
-      const door = document.createElement('div');
-      door.className = 'door';
-      door.id = `door-${day}`;
-      door.textContent = day;
+    function setupCalendar() {
+      for (let day = 1; day <= 24; day++) {
+        const door = document.createElement('div');
+        door.className = 'door';
+        door.id = `door-${day}`;
+        door.textContent = day;
 
-      if (testMode || day <= currentDay) {
-        door.addEventListener('click', () => openDoor(day));
-      } else {
-        door.classList.add('locked');
+        if (testMode || (isDecember && day <= currentDay)) {
+          door.addEventListener('click', () => openDoor(day));
+        } else {
+          door.classList.add('locked');
+        }
+
+        calendar.appendChild(door);
       }
-
-      calendar.appendChild(door);
     }
 
-    openDoor(testMode ? 1 : (currentDay || 1));
+    // Main Logik:
+    if (!testMode && !isDecember) {
+      showPreAdventCountdown();
+    } else {
+      setupCalendar();
+      // Starte mit Tag 1 (Testmodus), sonst heutiger Tag (wenn Dezember)
+      openDoor(testMode ? 1 : (currentDay || 1));
+    }
 
     // Schneefall erzeugen
     function createSnowflake() {
