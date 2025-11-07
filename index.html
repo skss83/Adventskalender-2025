@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
       font-family: "Poppins", "Segoe UI", sans-serif;
-      color: #e0f2e9; /* Hellgrün für gute Lesbarkeit */
+      color: #e0f2e9;
       text-align: center;
       background: linear-gradient(180deg, #004225 0%, #002913 100%);
       min-height: 100vh;
@@ -27,6 +27,42 @@
       text-shadow: 0 2px 6px rgba(0, 50, 20, 0.7);
     }
 
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1rem;
+      max-width: 600px;
+      margin: 0 auto 2rem auto;
+    }
+
+    .door {
+      background: rgba(224, 242, 233, 0.15);
+      border: 2px solid rgba(224, 242, 233, 0.3);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #bada55;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s, color 0.3s, opacity 0.3s;
+    }
+
+    .door.opened {
+      background: #bada55;
+      color: #002913;
+      cursor: default;
+    }
+
+    .door.locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .day-box {
       background: rgba(224, 242, 233, 0.15);
       border: 2px solid rgba(224, 242, 233, 0.3);
@@ -35,11 +71,12 @@
       max-width: 90%;
       backdrop-filter: blur(10px);
       box-shadow: 0 4px 15px rgba(0, 40, 15, 0.4);
+      color: #e0f2e9;
     }
 
     h2 {
       font-size: 1.4rem;
-      color: #bada55; /* Helles Grün als Akzent */
+      color: #bada55;
       margin-bottom: 0.5rem;
     }
 
@@ -83,31 +120,21 @@
     }
 
     @keyframes fall {
-      0% {
-        transform: translateY(-10px);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(100vh);
-        opacity: 0;
-      }
+      0% { transform: translateY(-10px); opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0; }
     }
 
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-      h2 {
-        font-size: 1.2rem;
-      }
-      p {
-        font-size: 0.95rem;
-      }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.2rem; }
+      p { font-size: 0.95rem; }
     }
   </style>
 </head>
 <body>
   <h1>🎄 Musikalischer Adventskalender 🎶</h1>
+
+  <div class="calendar"></div>
 
   <div class="day-box">
     <h2 id="day-info"></h2>
@@ -117,50 +144,94 @@
   </div>
 
   <script>
-    // 🎵 Songdatenbank
     const songs = {
       1: { url: "https://open.spotify.com/track/1", text: "Dieser Song ist, weil er den Dezember sanft eröffnet." },
       2: { url: "https://open.spotify.com/track/2", text: "Ein Song, der nach Tannenduft und Kerzen klingt." },
       3: { url: "https://open.spotify.com/track/3", text: "Dieser Song ist, weil er uns an gemeinsame Winterabende erinnert." },
       4: { url: "https://open.spotify.com/track/4", text: "Ein Klassiker, der die Vorfreude wachsen lässt." },
       5: { url: "https://open.spotify.com/track/5", text: "Dieser Song ist, weil er so wunderbar nach Geborgenheit klingt." },
-      // ... bis Tag 24 ergänzen
+      6: { url: "https://open.spotify.com/track/6", text: "Ein festlicher Ton für den sechsten Dezember." },
+      7: { url: "https://open.spotify.com/track/7", text: "Winterliche Klänge zum siebten Tag." },
+      8: { url: "https://open.spotify.com/track/8", text: "Ein Lied für gemütliche Abende." },
+      9: { url: "https://open.spotify.com/track/9", text: "Fröhliche Melodien für den neunten Dezember." },
+      10: { url: "https://open.spotify.com/track/10", text: "Winterzauber in Tönen." },
+      11: { url: "https://open.spotify.com/track/11", text: "Ein Klang voller Vorfreude." },
+      12: { url: "https://open.spotify.com/track/12", text: "Gemütliche Stunden mit Musik." },
+      13: { url: "https://open.spotify.com/track/13", text: "Ein Lied, das Wärme schenkt." },
+      14: { url: "https://open.spotify.com/track/14", text: "Winterliche Stimmung pur." },
+      15: { url: "https://open.spotify.com/track/15", text: "Melodien für den dritten Advent." },
+      16: { url: "https://open.spotify.com/track/16", text: "Klangvolle Momente im Dezember." },
+      17: { url: "https://open.spotify.com/track/17", text: "Zeit für besinnliche Musik." },
+      18: { url: "https://open.spotify.com/track/18", text: "Eine festliche Klangreise." },
+      19: { url: "https://open.spotify.com/track/19", text: "Lied für die Weihnachtszeit." },
+      20: { url: "https://open.spotify.com/track/20", text: "Weihnachtlicher Soundtrack." },
+      21: { url: "https://open.spotify.com/track/21", text: "Vorfreude auf Weihnachten." },
+      22: { url: "https://open.spotify.com/track/22", text: "Ein Klang voller Freude." },
+      23: { url: "https://open.spotify.com/track/23", text: "Letzte Melodien vor Heiligabend." },
       24: { url: "https://open.spotify.com/track/24", text: "Der Heiligabend-Song – ruhig, liebevoll, voller Licht." }
     };
 
-    // Hier den Test-Tag vorgeben (1-24)
-    const testDay = 5;
+    const calendar = document.querySelector('.calendar');
+    const info = document.getElementById('day-info');
+    const text = document.getElementById('song-text');
+    const desc = document.getElementById('song-desc');
+    const link = document.getElementById('spotify-link');
 
-    const info = document.getElementById("day-info");
-    const text = document.getElementById("song-text");
-    const desc = document.getElementById("song-desc");
-    const link = document.getElementById("spotify-link");
+    // Testmodus aktivieren oder deaktivieren
+    const testMode = true;
 
-    if (testDay >= 1 && testDay <= 24) {
-      info.textContent = `Heute ist der ${testDay}. Dezember (Testmodus)`;
-      text.textContent = "Dein heutiger Song:";
-      desc.textContent = songs[testDay].text;
-      link.href = songs[testDay].url;
-      link.style.display = "inline-block";
-    } else {
-      info.textContent = "Ungültiger Test-Tag!";
-      text.textContent = "";
-      desc.textContent = "";
-      link.style.display = "none";
+    // Aktueller Tag ermitteln (Dezember = Monat 11 in JS)
+    const today = new Date();
+    const currentDay = (today.getMonth() === 11) ? today.getDate() : 0;
+
+    function openDoor(day) {
+      if (!songs[day]) {
+        info.textContent = `Kein Song für den ${day}. Dezember hinterlegt.`;
+        text.textContent = '';
+        desc.textContent = '';
+        link.style.display = 'none';
+        return;
+      }
+      info.textContent = `Heute ist der ${day}. Dezember`;
+      text.textContent = 'Dein heutiger Song:';
+      desc.textContent = songs[day].text;
+      link.href = songs[day].url;
+      link.style.display = 'inline-block';
+
+      document.querySelectorAll('.door').forEach(d => d.classList.remove('opened'));
+      const door = document.getElementById(`door-${day}`);
+      if (door) door.classList.add('opened');
     }
 
-    // ❄️ Schneefall erzeugen
+    for (let day = 1; day <= 24; day++) {
+      const door = document.createElement('div');
+      door.className = 'door';
+      door.id = `door-${day}`;
+      door.textContent = day;
+
+      if (testMode || day <= currentDay) {
+        door.addEventListener('click', () => openDoor(day));
+      } else {
+        door.classList.add('locked');
+      }
+
+      calendar.appendChild(door);
+    }
+
+    // Öffne initial das erste Türchen oder aktuellen Tag im Livebetrieb
+    openDoor(testMode ? 1 : currentDay || 1);
+
+    // Schneefall erzeugen
     function createSnowflake() {
-      const snowflake = document.createElement("div");
-      snowflake.classList.add("snowflake");
-      snowflake.textContent = "❄";
-      snowflake.style.left = Math.random() * window.innerWidth + "px";
-      snowflake.style.fontSize = Math.random() * 18 + 10 + "px";
-      snowflake.style.animationDuration = Math.random() * 5 + 5 + "s";
+      const snowflake = document.createElement('div');
+      snowflake.classList.add('snowflake');
+      snowflake.textContent = '❄';
+      snowflake.style.left = Math.random() * window.innerWidth + 'px';
+      snowflake.style.fontSize = Math.random() * 18 + 10 + 'px';
+      snowflake.style.animationDuration = Math.random() * 5 + 5 + 's';
       document.body.appendChild(snowflake);
       setTimeout(() => snowflake.remove(), 10000);
     }
-
     setInterval(createSnowflake, 200);
   </script>
 </body>
