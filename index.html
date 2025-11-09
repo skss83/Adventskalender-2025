@@ -60,6 +60,24 @@
       cursor: not-allowed;
     }
 
+    /* Hervorhebung des heutigen Tages */
+    .door.today {
+      background: #bada55;
+      color: #002913;
+      border-color: #7a9900;
+      font-weight: bold;
+      box-shadow: 0 0 10px 3px #bada55aa;
+    }
+
+    /* Grauer Schleier für vergangene Tage */
+    .door.past {
+      background: rgba(224, 242, 233, 0.15);
+      color: #a0a0a0;
+      border-color: rgba(160, 160, 160, 0.3);
+      filter: grayscale(70%) opacity(0.6);
+      cursor: default;
+    }
+
     .song-view {
       display: none;
       flex-direction: column;
@@ -141,6 +159,16 @@
       100% { transform: translateY(100vh); opacity: 0; }
     }
 
+    /* Der Text vor dem 1. Dezember */
+    #preDecemberMessage {
+      max-width: 480px;
+      margin: 4rem auto;
+      font-size: 1.3rem;
+      color: #bada55;
+      line-height: 1.6;
+      user-select: none;
+    }
+
     @media (max-width: 600px) {
       .calendar {
         grid-template-columns: repeat(3, 1fr);
@@ -159,12 +187,25 @@
       p {
         font-size: 0.95rem;
       }
+      #preDecemberMessage {
+        font-size: 1rem;
+        margin: 2rem auto;
+      }
     }
   </style>
 </head>
 <body>
   <h1>🎄 Tamy's Adventskalender 2025 🎶</h1>
-  <p>Liebe Tamara,<br>dieser Kalender ist für dich – jeden Tag ein Lied, ein Gedanke und ein Stück Herz 💚</p>
+
+  <div id="preDecemberMessage" style="display:none;">
+    Na? Bist du wieder neugierig?<br>
+    Finger weg, noch gibts hier nichts zu sehen!<br>
+    Da du aber wieder mal nicht warten konntest, bekomme ich jetzt ein Bitchbild von dir!
+  </div>
+
+  <p id="introText" style="margin-bottom: 1rem; max-width: 480px; text-align: center; color: #e0f2e9;">
+    Liebe Tamara,<br>dieser Kalender ist für dich – jeden Tag ein Lied, ein Gedanke und ein Stück Herz 💚
+  </p>
 
   <div class="calendar" id="calendar"></div>
 
@@ -213,18 +254,27 @@
     const songLink = document.getElementById("songLink");
     const playlistLinkDiv = document.getElementById("playlistLink");
     const backBtn = document.getElementById("backBtn");
+    const preMessage = document.getElementById("preDecemberMessage");
+    const introText = document.getElementById("introText");
 
-    const testMode = true;
+    // Testmodus: wenn true, alle Tage bis testDay sind anklickbar
+    const testMode = false;
+    const testDay = 1;
+
     const today = new Date();
     const isDecember = today.getMonth() === 11;
     const currentDay = isDecember ? today.getDate() : 0;
+    const activeDay = testMode ? testDay : currentDay;
 
     function showCalendar() {
       songView.classList.remove("active");
       calendar.style.display = "grid";
+      introText.style.display = "block";
+      preMessage.style.display = "none";
     }
 
     function openSong(day) {
+      if (day > activeDay) return;
       const s = songs[day];
       if (!s) return;
 
@@ -239,15 +289,35 @@
     }
 
     function setupCalendar() {
+      if (!isDecember && !testMode) {
+        calendar.style.display = "none";
+        introText.style.display = "none";
+        preMessage.style.display = "block";
+        return;
+      }
+
+      preMessage.style.display = "none";
+      introText.style.display = "block";
+      calendar.style.display = "grid";
+
       for (let d = 1; d <= 24; d++) {
         const door = document.createElement("div");
         door.className = "door";
         door.textContent = d;
-        if (testMode || (isDecember && d <= currentDay)) {
+
+        if ((testMode && d <= testDay) || (isDecember && d <= currentDay)) {
           door.addEventListener("click", () => openSong(d));
+          if (d === activeDay) {
+            door.classList.add("today");
+          } else if (d < activeDay) {
+            door.classList.add("past");
+            door.style.cursor = "default";
+          }
         } else {
           door.classList.add("locked");
+          door.style.cursor = "not-allowed";
         }
+
         calendar.appendChild(door);
       }
     }
