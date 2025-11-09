@@ -10,14 +10,14 @@
       padding: 0;
       font-family: "Poppins", "Segoe UI", sans-serif;
       color: #e0f2e9;
-      text-align: center;
       background: linear-gradient(180deg, #004225 0%, #002913 100%);
       min-height: 100vh;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
+      text-align: center;
+      overflow-x: hidden;
     }
 
     h1 {
@@ -33,13 +33,12 @@
       max-width: 480px;
       margin: 0 auto 2rem auto;
       width: 100%;
-      box-sizing: border-box;
     }
 
     .door {
       background: rgba(224, 242, 233, 0.15);
       border: 2px solid rgba(224, 242, 233, 0.3);
-      border-radius: 8px;
+      border-radius: 10px;
       height: 70px;
       font-weight: bold;
       font-size: 1.6rem;
@@ -49,33 +48,36 @@
       justify-content: center;
       cursor: pointer;
       user-select: none;
-      transition: background 0.3s, color 0.3s, opacity 0.3s;
-      width: 100%;
-      max-width: 100%;
-      box-sizing: border-box;
+      transition: background 0.3s, color 0.3s, transform 0.2s;
     }
 
-    .door.opened {
-      background: #bada55;
-      color: #002913;
-      cursor: default;
+    .door:hover {
+      transform: scale(1.05);
     }
 
     .door.locked {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
     }
 
-    .day-box {
-      background: rgba(224, 242, 233, 0.15);
-      border: 2px solid rgba(224, 242, 233, 0.3);
-      border-radius: 20px;
+    .song-view {
+      display: none;
+      flex-direction: column;
+      align-items: center;
       padding: 1.5rem;
-      max-width: 90%;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 15px rgba(0, 40, 15, 0.4);
-      color: #e0f2e9;
-      margin-bottom: 2rem;
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .song-view.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h2 {
@@ -87,16 +89,10 @@
     p {
       font-size: 1rem;
       margin: 0.5rem 0;
+      color: #e0f2e9;
     }
 
-    .countdown {
-      font-weight: bold;
-      color: #bada55;
-      font-size: 1.2rem;
-      margin-top: 1rem;
-    }
-
-    a {
+    a.button {
       display: inline-block;
       margin-top: 1rem;
       padding: 0.8rem 1.5rem;
@@ -108,15 +104,26 @@
       transition: 0.2s;
     }
 
-    a:hover {
+    a.button:hover {
       background: #357a38;
       transform: scale(1.05);
     }
 
-    .desc {
-      font-style: italic;
-      color: #d4f3c3;
-      margin-top: 1rem;
+    .back-btn {
+      margin-top: 1.5rem;
+      background: transparent;
+      border: 2px solid #bada55;
+      color: #bada55;
+      padding: 0.6rem 1.2rem;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .back-btn:hover {
+      background: #bada55;
+      color: #002913;
     }
 
     .snowflake {
@@ -136,19 +143,18 @@
 
     @media (max-width: 600px) {
       .calendar {
-        grid-template-columns: repeat(4, 1fr);
-        max-width: 100%;
-        gap: 0.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
       }
       .door {
-        height: 48px;
-        font-size: 1.02rem;
+        height: 60px;
+        font-size: 1.3rem;
       }
       h1 {
-        font-size: 1.2rem;
+        font-size: 1.4rem;
       }
       h2 {
-        font-size: 1rem;
+        font-size: 1.1rem;
       }
       p {
         font-size: 0.95rem;
@@ -158,201 +164,106 @@
 </head>
 <body>
   <h1>🎄 Tamy's Adventskalender 2025 🎶</h1>
-  <p>Liebe Tamara,<br>aufgrund der aktuellen Umstände bei dir und bei mir, gibt es dieses Jahr diesen Adventkalender.<br>Damit nicht alles nur digital ist, gibt es hier und da auch was zum anfassen 😉</p>
-  <div class="calendar"></div>
+  <p>Liebe Tamara,<br>dieser Kalender ist für dich – jeden Tag ein Lied, ein Gedanke und ein Stück Herz 💚</p>
 
-  <div class="day-box">
-    <h2 id="day-info"></h2>
-    <p id="song-text"></p>
-    <p id="song-desc" class="desc"></p>
-    <div id="countdown" class="countdown"></div>
-    <a id="spotify-link" href="#" target="_blank" style="display:none;">🎧 Jetzt anhören</a>
+  <div class="calendar" id="calendar"></div>
+
+  <div class="song-view" id="songView">
+    <h2 id="songDay"></h2>
+    <p id="songText"></p>
+    <a id="songLink" class="button" href="#" target="_blank">🎧 Jetzt anhören</a>
+    <div id="playlistLink"></div>
+    <button class="back-btn" id="backBtn">← Zurück zum Kalender</button>
   </div>
 
   <script>
     const songs = {
-  1: { 
-    url: "https://open.spotify.com/track/29somteEiWNMj5sRE3ZCSr?si=GIYs-U3ER5-ddljUEIFUVA", 
-    text: "Du bist einer der wenigen Menschen, die wirklich hinter meine Fassade schauen. Mit dir kann ich auf den Grund gehen, herausfinden, warum etwas in mir so ist, und gleichzeitig tief in mir selbst ankommen." 
-  },
-  2: { 
-    url: "https://open.spotify.com/track/3xJiVml80WEbicBuukBKD6?si=psTCDHeKSHSc3BeVFf5Rig", 
-    text: "Manchmal reicht ein bisschen Liebe, ein ehrliches Wort, ein Lächeln von dir und der Tag wird leichter. Du ahnst gar nicht, wie oft du mir genau das gibst." 
-  },
-  3: { 
-    url: "https://open.spotify.com/track/7LpMBXB7DT0nYUGMWsCqux?si=-7-e6P0WT-m4ccBrI-x0oA", 
-    text: "Danke, dass du mich nimmst, wie ich bin. Ich wäre manchmal gern ein bisschen mehr wie du, so offen, so echt, so sicher in dir selbst." 
-  },
-  4: { 
-    url: "https://open.spotify.com/track/79m5b3QJwIlnseSqGfJNo9?si=-afi1HkhQgi8zcu1zSRO5A", 
-    text: "Das größte Kompliment ist, dass ich dich in meinem Leben habe. Du machst es heller, schöner und ehrlicher." 
-  },
-  5: { 
-    url: "https://open.spotify.com/track/2k0p3HoeBwtoZbjs5ktWJq?si=X3NwyiHDQMWKIfKmAF8pOg", 
-    text: "Musik hilft mir, wenn alles in mir laut wird. Du tust das Gleiche, du bringst Ruhe, machst Hoffnung und gibst mir das Gefühl, dass alles wieder besser werden kann." 
-  },
-  6: { 
-    url: "https://open.spotify.com/track/4NkvOJLO2UfndW6ZGAmz9a?si=eGN82aTRSnStQXX6C8BA-Q", 
-    text: "Wenn du da bist, atmet alles in mir ein bisschen auf. Du bringst Ruhe in mein Chaos und dafür bin ich dir unendlich dankbar." 
-  },
-  7: { 
-    url: "https://open.spotify.com/track/1ge9r5XwpoZyogDkMOFE5m?si=6Nzx1ROsR5602-y6JT48Mw", 
-    text: "Du schaffst es, mich die Dinge nicht so schwarz zu sehen. Dein Optimismus steckt an, auch wenn du gar nichts sagst." 
-  },
-  8: { 
-    url: "https://open.spotify.com/track/2VCxBJX4ZuToh2LuaLczil?si=ys9h7er4T82RbhWYifCgCw", 
-    text: "Du hast etwas in mir verändert. Seit du da bist, fühlt sich Einsamkeit weniger endgültig an, eher wie eine Pause, die vergeht, wenn ich dich sehe." 
-  },
-  9: { 
-    url: "https://open.spotify.com/track/1JGqQhO91NNDbySUnaDVMi?si=FEI3yaE3Qsi6eYKNtVPrKw", 
-    text: "Mit dir darf ich ehrlich sein und sagen, wenn es mir nicht gut geht. Danke, dass du mich dann nicht wegschiebst, sondern einfach bleibst." 
-  },
-  10: { 
-    url: "https://open.spotify.com/track/2Ks3B9resNwSi2Ty4v3FuD?si=Jo1ADJXyStyMX4dd9XvsTg", 
-    text: "Mit dir ist es mehr als Freundschaft. Da ist Vertrauen, Verständnis und Nähe, all das, was man selten findet und nie erzwingen kann." 
-  },
-  11: { 
-    url: "https://open.spotify.com/track/6fDw6jks6vPMhFFXjjtS91?si=tmgiuj59SUOhjIBj1XucIw", 
-    text: "Du hast mich schon oft gerettet, ohne es zu wissen. Mit deiner Art, einfach da zu sein, wenn ich es am meisten brauche." 
-  },
-  12: { 
-    url: "https://open.spotify.com/track/4zX0ge2YvakzNTim6r7pqE?si=vMGuseu-TAOxf1Zf50tUqw", 
-    text: "Bei dir kann ich durchatmen. Kein Druck, kein Verstellen, nur wir, echt und ruhig. Das ist so viel wert." 
-  },
-  13: { 
-    url: "https://open.spotify.com/track/7Lelnvk3rICMEVn0MrKGIZ?si=z0ZlUTMsQS6QytiEJHK6xQ", 
-    text: "Freundschaft klingt bei dir nach Zuhause. Du bleibst, auch wenn es schwer wird, und das ist selten und kostbar." 
-  },
-  14: { 
-    url: "https://open.spotify.com/track/3KcprqLheHXoMc5CWrji7s?si=Oz9Uakv2TVafUsGroUkG8Q", 
-    text: "Du bist mein Lieblingsmensch, weil du mich siehst, ohne dass ich mich verstellen muss." 
-  },
-  15: { 
-    url: "https://open.spotify.com/track/7rwAzZpANJEN0vn0pzYONW?si=O_HlcH3DTF2dfb2EK4iPFg", 
-    text: "Ich will mehr davon, wie du bist. Mehr von deiner Wärme, deiner Art, den Moment leichter zu machen, ohne es überhaupt zu merken." 
-  },
-  16: { 
-    url: "https://open.spotify.com/track/6uVEu6kmTTCUPRGk5XDsoY?si=QKNf_NkzTfimXE0in_2Ovw", 
-    text: "Bei dir kann ich loslassen. Du siehst mich, wenn ich mich selbst nicht sehe, und das macht alles ein Stück leichter." 
-  },
-  17: { 
-    url: "https://open.spotify.com/track/1ltZ4fda60V8puPKIh3Ebu?si=XykzUBOlSrG1hbn-v5kJcA", 
-    text: "Mit dir muss ich nichts sein. Es reicht, dass du einfach da bist, und das ist so viel wert." 
-  },
-  18: { 
-    url: "https://open.spotify.com/track/3TJueN4qUUt4Hbs30vDX2d?si=4QZL061rSz2K_zQUZDOXzA", 
-    text: "Es gibt kein Wort, das beschreibt, was das zwischen uns ist. Aber ich spüre, dass es echt ist, und das reicht mir." 
-  },
-  19: { 
-    url: "https://open.spotify.com/track/2LIfi2EIk0g13bqACjhBMO?si=OKlGQ_mWS3eGEkMsedThRA", 
-    text: "Heute ist mein Geburtstag, und es fühlt sich richtig an, dir dieses Lied zu schenken. Du bist das größte Geschenk, das ich bekommen habe, und ich bin dankbar, dass du da bist." 
-  },
-  20: { 
-    url: "https://open.spotify.com/track/3eWYg11hGzG4DJ4Wk8rLRh?si=pj5wd23qQD-plCS0M3vK5A", 
-    text: "Manchmal ertappe ich mich dabei, wie ich einfach lächle, weil ein Gedanke an dich da ist. Kein besonderer Grund, nur das Gefühl, dass du gut für mich bist." 
-  },
-  21: { 
-    url: "https://open.spotify.com/track/4y9Uf8HTr11DoObAFZHkQk?si=YHHV5K9jTgaAMeb901VdYw", 
-    text: "Ich weiß, dass du nicht immer glücklich bist, und trotzdem gehst du weiter. Genau das macht dich stark, auch wenn du das selbst manchmal vergisst." 
-  },
-  22: { 
-    url: "https://open.spotify.com/track/3539a50OyPXEeHdAVTkUtV?si=ufTOt7wRRhKIissYNXVkzw", 
-    text: "Deine Art, mit Menschen umzugehen, ist besonders. Du gibst Sicherheit, ohne viel zu sagen, und das ist etwas, das man nicht lernen kann, das hat man einfach." 
-  },
-  23: { 
-    url: "https://open.spotify.com/track/1ZrYFVvCZmdlnWpNgyvFa6?si=dzG52kkLR2O05EbjsQsFZw", 
-    text: "Das Jahr geht zu Ende und draußen wird es still. Ich wünsche mir, dass du das Gute siehst, das dieses Jahr gebracht hat, und dass du weißt, wie wichtig du mir geworden bist." 
-  },
-  24: { 
-    url: "https://open.spotify.com/track/3ipPbKdpcbZisTznpplDig?si=mZLc_vHuSQ-Cu0P90URH4A", 
-    text: "Es ist Weihnachten, und ich will dir einfach sagen, wie dankbar ich bin, dass es dich gibt. Du bist einer der Gründe, warum ich dieses Jahr überstanden habe, und das bedeutet mir alles." 
-  }
-};
+      1:{url:"https://open.spotify.com/track/29somteEiWNMj5sRE3ZCSr?si=GIYs-U3ER5-ddljUEIFUVA",text:"Du bist einer der wenigen Menschen, die wirklich hinter meine Fassade schauen. Mit dir kann ich auf den Grund gehen, herausfinden, warum etwas in mir so ist, und gleichzeitig tief in mir selbst ankommen."},
+      2:{url:"https://open.spotify.com/track/3xJiVml80WEbicBuukBKD6?si=psTCDHeKSHSc3BeVFf5Rig",text:"Manchmal reicht ein bisschen Liebe, ein ehrliches Wort, ein Lächeln von dir und der Tag wird leichter. Du ahnst gar nicht, wie oft du mir genau das gibst."},
+      3:{url:"https://open.spotify.com/track/7LpMBXB7DT0nYUGMWsCqux?si=-7-e6P0WT-m4ccBrI-x0oA",text:"Danke, dass du mich nimmst, wie ich bin. Ich wäre manchmal gern ein bisschen mehr wie du, so offen, so echt, so sicher in dir selbst."},
+      4:{url:"https://open.spotify.com/track/79m5b3QJwIlnseSqGfJNo9?si=-afi1HkhQgi8zcu1zSRO5A",text:"Das größte Kompliment ist, dass ich dich in meinem Leben habe. Du machst es heller, schöner und ehrlicher."},
+      5:{url:"https://open.spotify.com/track/2k0p3HoeBwtoZbjs5ktWJq?si=X3NwyiHDQMWKIfKmAF8pOg",text:"Musik hilft mir, wenn alles in mir laut wird. Du tust das Gleiche, du bringst Ruhe, machst Hoffnung und gibst mir das Gefühl, dass alles wieder besser werden kann."},
+      6:{url:"https://open.spotify.com/track/4NkvOJLO2UfndW6ZGAmz9a?si=eGN82aTRSnStQXX6C8BA-Q",text:"Wenn du da bist, atmet alles in mir ein bisschen auf. Du bringst Ruhe in mein Chaos und dafür bin ich dir unendlich dankbar."},
+      7:{url:"https://open.spotify.com/track/1ge9r5XwpoZyogDkMOFE5m?si=6Nzx1ROsR5602-y6JT48Mw",text:"Du schaffst es, mich die Dinge nicht so schwarz zu sehen. Dein Optimismus steckt an, auch wenn du gar nichts sagst."},
+      8:{url:"https://open.spotify.com/track/2VCxBJX4ZuToh2LuaLczil?si=ys9h7er4T82RbhWYifCgCw",text:"Du hast etwas in mir verändert. Seit du da bist, fühlt sich Einsamkeit weniger endgültig an, eher wie eine Pause, die vergeht, wenn ich dich sehe."},
+      9:{url:"https://open.spotify.com/track/1JGqQhO91NNDbySUnaDVMi?si=FEI3yaE3Qsi6eYKNtVPrKw",text:"Mit dir darf ich ehrlich sein und sagen, wenn es mir nicht gut geht. Danke, dass du mich dann nicht wegschiebst, sondern einfach bleibst."},
+      10:{url:"https://open.spotify.com/track/2Ks3B9resNwSi2Ty4v3FuD?si=Jo1ADJXyStyMX4dd9XvsTg",text:"Mit dir ist es mehr als Freundschaft. Da ist Vertrauen, Verständnis und Nähe, all das, was man selten findet und nie erzwingen kann."},
+      11:{url:"https://open.spotify.com/track/6fDw6jks6vPMhFFXjjtS91?si=tmgiuj59SUOhjIBj1XucIw",text:"Du hast mich schon oft gerettet, ohne es zu wissen. Mit deiner Art, einfach da zu sein, wenn ich es am meisten brauche."},
+      12:{url:"https://open.spotify.com/track/4zX0ge2YvakzNTim6r7pqE?si=vMGuseu-TAOxf1Zf50tUqw",text:"Bei dir kann ich durchatmen. Kein Druck, kein Verstellen, nur wir, echt und ruhig. Das ist so viel wert."},
+      13:{url:"https://open.spotify.com/track/7Lelnvk3rICMEVn0MrKGIZ?si=z0ZlUTMsQS6QytiEJHK6xQ",text:"Freundschaft klingt bei dir nach Zuhause. Du bleibst, auch wenn es schwer wird, und das ist selten und kostbar."},
+      14:{url:"https://open.spotify.com/track/3KcprqLheHXoMc5CWrji7s?si=Oz9Uakv2TVafUsGroUkG8Q",text:"Du bist mein Lieblingsmensch, weil du mich siehst, ohne dass ich mich verstellen muss."},
+      15:{url:"https://open.spotify.com/track/7rwAzZpANJEN0vn0pzYONW?si=O_HlcH3DTF2dfb2EK4iPFg",text:"Ich will mehr davon, wie du bist. Mehr von deiner Wärme, deiner Art, den Moment leichter zu machen, ohne es überhaupt zu merken."},
+      16:{url:"https://open.spotify.com/track/6uVEu6kmTTCUPRGk5XDsoY?si=QKNf_NkzTfimXE0in_2Ovw",text:"Bei dir kann ich loslassen. Du siehst mich, wenn ich mich selbst nicht sehe, und das macht alles ein Stück leichter."},
+      17:{url:"https://open.spotify.com/track/1ltZ4fda60V8puPKIh3Ebu?si=XykzUBOlSrG1hbn-v5kJcA",text:"Mit dir muss ich nichts sein. Es reicht, dass du einfach da bist, und das ist so viel wert."},
+      18:{url:"https://open.spotify.com/track/3TJueN4qUUt4Hbs30vDX2d?si=4QZL061rSz2K_zQUZDOXzA",text:"Es gibt kein Wort, das beschreibt, was das zwischen uns ist. Aber ich spüre, dass es echt ist, und das reicht mir."},
+      19:{url:"https://open.spotify.com/track/2LIfi2EIk0g13bqACjhBMO?si=OKlGQ_mWS3eGEkMsedThRA",text:"Heute ist mein Geburtstag, und es fühlt sich richtig an, dir dieses Lied zu schenken. Du bist das größte Geschenk, das ich bekommen habe, und ich bin dankbar, dass du da bist."},
+      20:{url:"https://open.spotify.com/track/3eWYg11hGzG4DJ4Wk8rLRh?si=pj5wd23qQD-plCS0M3vK5A",text:"Manchmal ertappe ich mich dabei, wie ich einfach lächle, weil ein Gedanke an dich da ist. Kein besonderer Grund, nur das Gefühl, dass du gut für mich bist."},
+      21:{url:"https://open.spotify.com/track/4y9Uf8HTr11DoObAFZHkQk?si=YHHV5K9jTgaAMeb901VdYw",text:"Ich weiß, dass du nicht immer glücklich bist, und trotzdem gehst du weiter. Genau das macht dich stark, auch wenn du das selbst manchmal vergisst."},
+      22:{url:"https://open.spotify.com/track/3539a50OyPXEeHdAVTkUtV?si=ufTOt7wRRhKIissYNXVkzw",text:"Deine Art, mit Menschen umzugehen, ist besonders. Du gibst Sicherheit, ohne viel zu sagen, und das ist etwas, das man nicht lernen kann, das hat man einfach."},
+      23:{url:"https://open.spotify.com/track/1ZrYFVvCZmdlnWpNgyvFa6?si=dzG52kkLR2O05EbjsQsFZw",text:"Das Jahr geht zu Ende und draußen wird es still. Ich wünsche mir, dass du das Gute siehst, das dieses Jahr gebracht hat, und dass du weißt, wie wichtig du mir geworden bist."},
+      24:{url:"https://open.spotify.com/track/3ipPbKdpcbZisTznpplDig?si=mZLc_vHuSQ-Cu0P90URH4A",text:"Es ist Weihnachten, und ich will dir einfach sagen, wie dankbar ich bin, dass es dich gibt. Du bist einer der Gründe, warum ich dieses Jahr überstanden habe, und das bedeutet mir alles."}
+    };
 
-    const calendar = document.querySelector('.calendar');
-    const info = document.getElementById('day-info');
-    const text = document.getElementById('song-text');
-    const desc = document.getElementById('song-desc');
-    const link = document.getElementById('spotify-link');
-    const countdownDiv = document.getElementById('countdown');
+    const playlistURL = "https://open.spotify.com/playlist/4NmKOMIhSbHjzcFk5BmFr8?si=QSQsNjF5Qti97vGVJxrjkQ";
 
-    // Testmodus aktivieren/deaktivieren
+    const calendar = document.getElementById("calendar");
+    const songView = document.getElementById("songView");
+    const songDay = document.getElementById("songDay");
+    const songText = document.getElementById("songText");
+    const songLink = document.getElementById("songLink");
+    const playlistLinkDiv = document.getElementById("playlistLink");
+    const backBtn = document.getElementById("backBtn");
+
     const testMode = true;
-
     const today = new Date();
-    // currentDay == 0 falls nicht Dezember
-    const currentDay = (today.getMonth() === 11) ? today.getDate() : 0;
     const isDecember = today.getMonth() === 11;
+    const currentDay = isDecember ? today.getDate() : 0;
 
-    function showPreAdventCountdown() {
-      // Heute bis 1. Dez.
-      let firstDecember = new Date(today.getFullYear(), 11, 1);
-      let remain = Math.ceil((firstDecember - today) / (1000 * 60 * 60 * 24));
-      if (remain < 0) remain = 0;
-
-      info.textContent = "Na? Bist du wieder neugierig?";
-      text.textContent = "Finger weg, noch gibts hier nichts zu sehen!";
-      desc.textContent = "Da du aber wieder mal nicht warten konntest, bekomme ich jetzt ein Bitchbild von dir!";
-      link.style.display = "none";
-      countdownDiv.textContent = remain === 1
-          ? "Morgen Spielzeug, wirds was geben"
-          : `Komm in ${remain} Tagen wieder!`;
+    function showCalendar() {
+      songView.classList.remove("active");
+      calendar.style.display = "grid";
     }
 
-    function openDoor(day) {
-      countdownDiv.textContent = "";
-      if (!songs[day]) {
-        info.textContent = `Kein Song für den ${day}. Dezember hinterlegt.`;
-        text.textContent = '';
-        desc.textContent = '';
-        link.style.display = 'none';
-        return;
-      }
-      info.textContent = `Heute ist der ${day}. Dezember`;
-      text.textContent = '';
-      desc.textContent = songs[day].text;
-      link.href = songs[day].url;
-      link.style.display = 'inline-block';
+    function openSong(day) {
+      const s = songs[day];
+      if (!s) return;
 
-      document.querySelectorAll('.door').forEach(d => d.classList.remove('opened'));
-      const door = document.getElementById(`door-${day}`);
-      if (door) door.classList.add('opened');
+      calendar.style.display = "none";
+      songView.classList.add("active");
+      songDay.textContent = `🎅 ${day}. Dezember`;
+      songText.textContent = s.text;
+      songLink.href = s.url;
+      playlistLinkDiv.innerHTML = (day === 24)
+        ? `<a class="button" href="${playlistURL}" target="_blank">💚 Zur gesamten Playlist</a>`
+        : "";
     }
 
     function setupCalendar() {
-      for (let day = 1; day <= 24; day++) {
-        const door = document.createElement('div');
-        door.className = 'door';
-        door.id = `door-${day}`;
-        door.textContent = day;
-
-        if (testMode || (isDecember && day <= currentDay)) {
-          door.addEventListener('click', () => openDoor(day));
+      for (let d = 1; d <= 24; d++) {
+        const door = document.createElement("div");
+        door.className = "door";
+        door.textContent = d;
+        if (testMode || (isDecember && d <= currentDay)) {
+          door.addEventListener("click", () => openSong(d));
         } else {
-          door.classList.add('locked');
+          door.classList.add("locked");
         }
-
         calendar.appendChild(door);
       }
     }
 
-    // Main Logik:
-    if (!testMode && !isDecember) {
-      showPreAdventCountdown();
-    } else {
-      setupCalendar();
-      // Starte mit Tag 1 (Testmodus), sonst heutiger Tag (wenn Dezember)
-      openDoor(testMode ? 1 : (currentDay || 1));
-    }
+    backBtn.addEventListener("click", showCalendar);
 
-    // Schneefall erzeugen
+    setupCalendar();
+
+    // Schneefall
     function createSnowflake() {
-      const snowflake = document.createElement('div');
-      snowflake.classList.add('snowflake');
-      snowflake.textContent = '❄';
-      snowflake.style.left = Math.random() * window.innerWidth + 'px';
-      snowflake.style.fontSize = Math.random() * 18 + 10 + 'px';
-      snowflake.style.animationDuration = Math.random() * 5 + 5 + 's';
+      const snowflake = document.createElement("div");
+      snowflake.classList.add("snowflake");
+      snowflake.textContent = "❄";
+      snowflake.style.left = Math.random() * window.innerWidth + "px";
+      snowflake.style.fontSize = Math.random() * 18 + 10 + "px";
+      snowflake.style.animationDuration = Math.random() * 5 + 5 + "s";
       document.body.appendChild(snowflake);
       setTimeout(() => snowflake.remove(), 10000);
     }
